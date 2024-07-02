@@ -1,0 +1,37 @@
+{
+  "gql": "mutation generateAPIKey($generateAPIKey_key: CreateAPIKey!) {\n  generateAPIKey(key: $generateAPIKey_key)\n}\nquery JustConversationWithGpt($chatGPT35Turbo_input: GPT35_Input!) {\n  ai {\n    conversational {\n      chatGPT35Turbo(input: $chatGPT35Turbo_input) {\n        message {\n          content\n          role\n        }\n      }\n    }\n  }\n}\n",
+  "variableValues": {
+    "generateAPIKey_key": {
+      "name": "CardGame",
+      "openAiKey": "MY_OPEN_AI_KEY",
+      "replicateKey": "MY_REPLICATE_KEY"
+    },
+    "chatGPT35Turbo_input": {
+      "messages": [
+        {
+          "content": "Hello Chat!",
+          "role": "user"
+        }
+      ]
+    }
+  },
+  "responses": {
+    "generateAPIKey": {
+      "__typename": "success",
+      "data": {
+        "generateAPIKey": "dupa"
+      },
+      "timeDelta": 14.100000381469727,
+      "status": 200,
+      "statusHealthy": true
+    }
+  },
+  "headers": {
+    "JustConversationWithGpt": [
+      [
+        "Key",
+        "YOUR_API_KEY"
+      ]
+    ]
+  }
+}

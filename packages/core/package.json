@@ -1,0 +1,43 @@
+{
+  "name": "@aexol-studio/graphql-ai-core",
+  "version": "0.0.0",
+  "description": "Backend part of graphql ai",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "start": "node lib/server.js",
+    "update-axolotl": "npm i -D @aexol/axolotl@latest && npm i @aexol/axolotl-core@latest @aexol/axolotl-stucco@latest",
+    "typings": "axolotl build -m ./src/models.ts -s schema.graphql"
+  },
+  "author": "Aexol",
+  "license": "MIT",
+  "type": "module",
+  "devDependencies": {
+    "@aexol/axolotl": "^0.3.2",
+    "@types/bcrypt": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/mongodb": "^4.0.7",
+    "@types/node": "^18.7.18",
+    "@types/node-fetch": "^2.6.5",
+    "@types/sharp": "^0.31.1",
+    "@types/ws": "^8.5.4",
+    "ts-node": "^10.9.1"
+  },
+  "dependencies": {
+    "@aexol/axolotl-core": "^0.3.2",
+    "@aexol/axolotl-graphql-yoga": "^0.3.2",
+    "aws-sdk": "^2.1312.0",
+    "bcrypt": "^5.1.0",
+    "fs": "^0.0.1-security",
+    "graphql-editor-cli": "^0.9.1",
+    "graphql-yoga": "^5.4.0",
+    "i-graphql": "^0.1.2",
+    "inquirer": "^9.2.12",
+    "mongodb": "^5.1.0",
+    "node-fetch": "^3.3.2",
+    "plaiceholder": "^2.5.0",
+    "sharp": "^0.32.6",
+    "ws": "^8.12.0"
+  }
+}

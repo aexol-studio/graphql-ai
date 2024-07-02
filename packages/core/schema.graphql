@@ -1,0 +1,685 @@
+"""
+Main query
+"""
+type Query{
+	"""
+	query to use with "Key" and "Team" headers
+	"""
+	ai: AIQuery!
+	getFilePutURL(
+		fileInput: FileInput!
+	): UploadFileResponse!
+	getFileURL(
+		fileKey: String!
+	): String
+	apiKeys: [APIKey!]
+	styleTemplate(
+		styleTemplateId: String!
+	): StyleTemplate
+	styleTemplates: [StyleTemplate!]
+}
+
+type Mutation{
+	createStyleTemplate(
+		style: CreateStyleTemplate!
+	): String!
+	editStyleTemplate(
+		style: EditStyleTemplate!
+		_id: String!
+	): Boolean
+	deleteStyleTemplate(
+		_id: String!
+	): Boolean
+	generateAPIKey(
+		key: CreateAPIKey!
+	): String!
+	"""
+	Delete and revokes the API Key.
+	"""
+	deleteAPIKey(
+		_id: String!
+	): Boolean
+}
+
+input CreateStyleTemplate{
+	name: String!
+	"""
+	system message with variables preceded with $ sign
+	e.g. "Hello $name"
+	"""
+	prompt: String!
+	negative_prompt: String!
+	description: String
+	variables: [String!]!
+}
+
+input EditStyleTemplate{
+	name: String
+	"""
+	system message with variables preceded with $ sign
+	e.g. "Hello $name"
+	"""
+	prompt: String
+	negative_prompt: String
+	description: String
+	variables: [String!]
+}
+
+scalar Vars
+
+input FileInput{
+	fileKey: String!
+	contentType: String!
+}
+
+type UploadFileResponse{
+	fileKey: String!
+	putUrl: String!
+}
+
+"""
+Text Generation Task:
+Use to continue text from a prompt. This is a very generic task.
+"""
+input TextGenerationTask_Input{
+	"""
+	The maximum number of tokens to generate in the completion. Max is 4096
+	"""
+	max_tokens: Int
+	"""
+	The temperature of the sampling operation. 1 means regular sampling, 0 means always take the highest score, 2.0 is getting closer to uniform probability. Default is 0.7
+	"""
+	temperature: Float
+	"""
+	Float to define the tokens that are within the sample operation of text generation. Add tokens in the sample for more probable to least probable until the sum of the probabilities is greater than top_p.
+	"""
+	top_p: Float
+	"""
+	Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
+	"""
+	frequency_penalty: Float
+	"""
+	Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.
+	"""
+	presence_penalty: Float
+}
+
+input ImageGeneration_Input{
+	"""
+	a string to be generated from
+	"""
+	prompt: String!
+	negative_prompt: String
+	width: Int
+	height: Int
+	seed: Int
+}
+
+input AladirikImageEdition_Input{
+	"""
+	a string to be generated from
+	"""
+	prompt: String!
+	negative_prompt: String
+	width: Int
+	height: Int
+	random_seed: Int
+	image: String
+	scheduler: SchedulerForAladirik
+	max_tokens: Int
+}
+
+input ImageEdition_Input{
+	"""
+	a string to be generated from
+	"""
+	prompt: String!
+	negative_prompt: String
+	width: Int
+	height: Int
+	seed: Int
+	image: String
+	scheduler: SchedulerFotTimothybrooks
+	max_tokens: Int
+}
+
+enum SchedulerFotTimothybrooks{
+	DDIM
+	K_EULER
+	DPMSolverMultistep
+	K_EULER_ANCESTRAL
+	PNDM
+	KLMS
+}
+
+enum SchedulerForAladirik{
+	DDIM
+	DPMSolverMultistep
+	HeunDiscrete
+	KarrasDPM
+	K_EULER_ANCESTRAL
+	K_EULER
+	PNDM
+	LMSDiscrete
+}
+
+scalar Image
+
+"""
+Every generated image is stored on S3 Like back-end
+"""
+type GeneratedImage implements MongoStored{
+	createdAt: String!
+	prompt: String!
+	_id: String!
+	creatorId: String
+	model: String
+	url: String
+	thumbnailUrl: String
+	placeholderBase64: String
+	key: String!
+	thumbnailKey: String
+	imageType: ImageType
+}
+
+enum ImageType{
+	GENERATED
+	UPSCALED
+}
+
+"""
+Filter for searching history of generated prompts and images
+"""
+input PromptFilter{
+	"""
+	Date in ISO format
+	"""
+	from: String
+	"""
+	Date in ISO format
+	"""
+	to: String
+	query: String
+}
+
+type StyleTemplate implements MongoStored{
+	_id: String!
+	name: String!
+	"""
+	system message with variables preceded with $ sign
+	e.g. "Hello $name"
+	"""
+	prompt: String!
+	negative_prompt: String!
+	"""
+	keys of the variables used in the message
+	e.g. ["name"]
+	"""
+	description: String
+	variables: [String!]!
+	createdAt: String!
+}
+
+"""
+queries for different models responsible for image generation
+"""
+type ImageGenerationQuery{
+	"""
+	## Model Description
+	
+	Welcome to Anything V4 - a latent diffusion model for weebs. 
+	The newest version of Anything. This model is intended to produce high-quality, highly detailed anime style 
+	with just a few prompts. Like other anime-style Stable Diffusion models, 
+	it also supports danbooru tags to generate images.
+	
+	e.g. 1girl, white hair, golden eyes, beautiful eyes, detail, flower meadow, cumulonimbus clouds, lighting, 
+	detailed sky, garden
+	"""
+	anythingv4dot0(
+		input: ImageGeneration_Input!
+	): Image!
+	"""
+	## Model Description
+	
+	This is a model that can be used to generate and modify images based on text prompts. 
+	It is a Latent Diffusion Model that uses a fixed, pretrained text encoder (OpenCLIP-ViT/H).
+	"""
+	stableDiffusion21(
+		input: ImageGeneration_Input!
+	): Image!
+	"""
+	## Model Description
+	
+	Openjourney is an open source Stable Diffusion fine tuned model on Midjourney images, by PromptHero
+	"""
+	openJourney(
+		input: ImageGeneration_Input!
+	): Image!
+	"""
+	## Model Description
+	
+	Dalle is a first class model from OpenAI
+	"""
+	dalle(
+		input: ImageGeneration_Input!
+	): Image!
+	"""
+	## Model Description
+	
+	text2img model trained on LAION HighRes and fine-tuned on internal datasets
+	"""
+	kandinsky2(
+		input: ImageGeneration_Input!
+	): Image!
+	"""
+	## Model Description
+	
+	Image Restoration Using Swin Transformer
+	"""
+	swinir(
+		input: ImageRestoration_Input!
+	): Image!
+	"""
+	## Models Description
+	
+	Models for Archrenderer
+	"""
+	qr2aiOutline(
+		input: ImageEdition_Input!
+	): Image!
+	alaradirikDepthMidas(
+		input: AladirikImageEdition_Input!
+	): Image!
+	alaradirikLineart(
+		input: AladirikImageEdition_Input!
+	): Image!
+	timothybrooksPix2pix(
+		input: ImageEdition_Input!
+	): Image!
+}
+
+input ImageRestoration_Input{
+	name: String!
+	fileURL: String!
+	taskType: TaskType!
+}
+
+enum TaskType{
+	RESOLUTION_LARGE
+	RESOLUTION_MEDIUM
+}
+
+type ConversationalQuery{
+	"""
+	Receive immediate response from GTP 35 turbo API
+	"""
+	chatGPT35Turbo(
+		input: GPT35_Input!
+	): GPT35_Response!
+	"""
+	Set of queries for isolated contexts
+	"""
+	isolatedGPT35Turbo: IsolatedGPT35TurboQuery!
+	isolatedGPT35TurboMutation: IsolatedGPT35TurboMutation!
+	"""
+	Set of queries for networks
+	"""
+	isolatedNetworkOps: IsolatedGPTNetworkQuery!
+	llamaV2(
+		input: LLamaV2Input!
+	): String
+}
+
+type OngoingConversation implements MongoStored{
+	messages: [ConversationMessage!]!
+	createdAt: String!
+	_id: String!
+}
+
+type ConversationMessage{
+	message: String!
+	role: String!
+	createdAt: String!
+}
+
+type Dialog implements MongoStored{
+	_id: String!
+	createdAt: String!
+	updatedAt: String!
+	contextId: String!
+	creatorId: String
+	dialogName: String!
+	messages: [GPT35_MessageResponse!]
+	editedContext: [GPT35_MessageResponse!]
+}
+
+type TextDocument implements MongoStored{
+	content: String!
+	createdAt: String!
+	updatedAt: String!
+	_id: String!
+}
+
+input GPT35_Message{
+	content: String!
+	role: GPT35_Role!
+}
+
+enum GPT35_Role{
+	system
+	user
+	assistant
+}
+
+input GPT35_Input{
+	messages: [GPT35_Message!]!
+	user: String
+	options: TextGenerationTask_Input
+}
+
+type GPT35_MessageResponse{
+	content: String!
+	role: GPT35_Role!
+}
+
+type GPT35_Response{
+	createdAt: String!
+	message: GPT35_MessageResponse!
+}
+
+type APIKey implements MongoStored{
+	name: String!
+	createdAt: String!
+	_id: String!
+	openAiKey: String!
+	replicateKey: String!
+}
+
+interface MongoStored{
+	_id: String!
+	createdAt: String
+}
+
+type AIQuery{
+	"""
+	queries responsible for generation of images
+	"""
+	imageGeneration: ImageGenerationQuery!
+	"""
+	All conversational queries
+	"""
+	conversational: ConversationalQuery!
+	"""
+	queries to fetch assets from backend
+	"""
+	assets: AssetsQuery!
+}
+
+type AssetsQuery{
+	"""
+	Images generated from multiple image models, stored in S3 Digital Ocean Spaces.
+	"""
+	images(
+		creatorId: String
+		promptFilter: PromptFilter
+	): [GeneratedImage!]
+	conversations: [OngoingConversation!]
+	textDocuments: [TextDocument!]
+	removeImage(
+		_id: String!
+	): Boolean
+}
+
+input CreateAPIKey{
+	name: String!
+	openAiKey: String!
+	replicateKey: String!
+}
+
+"""
+Isolated conversation means that you will get conversation Id on the first call and then 
+"""
+type IsolatedGPT35TurboMutation{
+	createIsolatedContext(
+		input: CreateIsolatedContext!
+	): String!
+	"""
+	use context created with createIsolatedContext. Useful for creating knowledge bases
+	"""
+	fineTuningIsolatedContext(
+		_id: String!
+	): String!
+	addDialog(
+		input: AddDialogInput!
+	): String!
+	updateDialog(
+		_id: String!
+		input: UpdateDialogInput!
+	): Boolean!
+	removeDialog(
+		_id: String!
+	): Boolean!
+	fineTuningWithFile(
+		_id: String!
+		file: FileInput
+	): String!
+	deleteFineTuneModel(
+		_id: String!
+	): Boolean!
+	updateFineTuneModel(
+		_id: String!
+		model_name: String!
+	): Boolean!
+	updateIsolatedContext(
+		input: UpdateIsolatedContext!
+		_id: String!
+	): Boolean
+	removeIsolatedContext(
+		_id: String!
+	): Boolean
+}
+
+type IsolatedGPT35TurboQuery{
+	getFineTuneJobs: [FineTuneJob!]
+	retrieveJob(
+		_id: String
+	): FineTuneJob!
+	useIsolatedContext(
+		input: GPT35_Input!
+		useOwnModel: Boolean
+		contextId: String!
+		dialogId: String
+	): GPT35_Response!
+	previewIsolatedContext(
+		_id: String!
+	): IsolatedConversationalContext!
+	listIsolatedContexts: [IsolatedConversationalContext!]!
+	listDialogs: [Dialog!]
+	"""
+	This is used for feeding the information to GPT contexts and this is its only function
+	"""
+	chatGPT35TurboInformationFeed(
+		input: GPT35_Input!
+	): GPT35_Response!
+}
+
+type IsolatedConversationalContext{
+	messages: [GPT35_MessageResponse!]!
+	createdAt: String!
+	_id: String!
+	creatorId: String
+	name: String!
+	options: TextGenerationTask
+	ftModel: String
+	testDialogs: [Dialog!]
+}
+
+type TextGenerationTask{
+	"""
+	The maximum number of tokens to generate in the completion. Max is 4096
+	"""
+	max_tokens: Int
+	"""
+	The temperature of the sampling operation. 1 means regular sampling, 0 means always take the highest score, 2.0 is getting closer to uniform probability. Default is 0.7
+	"""
+	temperature: Float
+	"""
+	Float to define the tokens that are within the sample operation of text generation. Add tokens in the sample for more probable to least probable until the sum of the probabilities is greater than top_p.
+	"""
+	top_p: Float
+	"""
+	Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
+	"""
+	frequency_penalty: Float
+	"""
+	Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.
+	"""
+	presence_penalty: Float
+}
+
+input CreateIsolatedContext{
+	gpt: GPT35_Input!
+	name: String!
+}
+
+input AddDialogInput{
+	messages: [GPT35_Message!]!
+	editedContext: [GPT35_Message!]
+	dialogName: String!
+	contextId: String!
+}
+
+input UpdateDialogInput{
+	messages: [GPT35_Message!]
+	editedContext: [GPT35_Message!]
+	dialogName: String
+	contextId: String
+}
+
+input UpdateIsolatedContext{
+	gpt: GPT35_Input
+	name: String
+}
+
+type FineTuneJob implements MongoStored{
+	_id: String!
+	contextId: String!
+	contextName: String
+	job_id: String
+	createdAt: String!
+	training_file_id: String!
+	model_name: String
+	model_id: String
+	status: FineTuneJobStatus!
+	org_id: String
+	n_epochs: Int
+	job_error: String
+}
+
+type IsolatedContextNetwork implements MongoStored{
+	contexts: [IsolatedConversationalContext!]
+	_id: String!
+	creatorId: String
+	createdAt: String!
+	networks: [IsolatedContextNetwork!]
+	name: String!
+	system: String
+}
+
+input CreateIsolatedNetwork{
+	contexts: [String!]
+	networks: [String!]
+	name: String!
+	system: String
+}
+
+type IsolatedGPTNetworkQuery{
+	createIsolatedNetwork(
+		network: CreateIsolatedNetwork!
+	): String
+	removeIsolatedNetwork(
+		_id: String!
+	): Boolean
+	listIsolatedNetworks: [IsolatedContextNetwork!]
+	"""
+	Query isolated network of isolated contexts to get the right data from information context cloud
+	"""
+	queryIsolatedNetwork(
+		_id: String!
+		input: GPT35_Input!
+		"""
+		When in test mode, query will reply with answers from all contexts. when test mode is off (deafault) You will get the best answer only
+		"""
+		testMode: Boolean
+	): NetworkResponse!
+	updateIsolatedNetwork(
+		_id: String!
+		network: UpdateIsolatedNetwork!
+	): Boolean
+	previewIsolatedNetwork(
+		_id: String!
+	): IsolatedContextNetwork!
+}
+
+input UpdateIsolatedNetwork{
+	contexts: [String!]
+	networks: [String!]
+	name: String
+	system: String
+}
+
+"""
+Response from gpt network
+"""
+type NetworkResponse{
+	"""
+	Response from orchestrator
+	"""
+	gpt: GPT35_Response
+	"""
+	response with raw data same as received by network orchestrator
+	"""
+	rawResponse: String
+}
+
+enum FineTuneJobStatus{
+	uploading
+	validating_files
+	created
+	queued
+	running
+	succeeded
+	error
+}
+
+input LLamaV2Input{
+	userMessage: String!
+	options: LLamaV2_Options
+}
+
+"""
+LLama v2 Options
+"""
+input LLamaV2_Options{
+	"""
+	The maximum number of tokens to generate in the completion. Max is 4096
+	"""
+	max_length: Int
+	"""
+	The temperature of the sampling operation. 1 means regular sampling, 0 means always take the highest score, 2.0 is getting closer to uniform probability. Default is 0.7
+	"""
+	temperature: Float
+	"""
+	Float to define the tokens that are within the sample operation of text generation. Add tokens in the sample for more probable to least probable until the sum of the probabilities is greater than top_p.
+	"""
+	top_p: Float
+	"""
+	Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
+	"""
+	repetition_penalty: Float
+}
+
+schema{
+	query: Query
+	mutation: Mutation
+}
