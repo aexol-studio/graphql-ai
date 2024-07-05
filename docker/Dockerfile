@@ -1,11 +1,11 @@
-FROM node:22-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /home/node
 COPY --chown=node:node . .
 RUN ls -l
 RUN npm ci --prefer-offline
 RUN ["npm", "run", "build", "-w", "packages/core"]
 
-FROM node:22-alpine
+FROM node:20-alpine
 WORKDIR /home/node
 COPY --from=builder /home/node .
 RUN pwd

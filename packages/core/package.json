@@ -31,14 +31,17 @@
     "aws-sdk": "^2.1312.0",
     "bcrypt": "^5.1.0",
     "fs": "^0.0.1-security",
-    "graphql-editor-cli": "^0.9.1",
+    "graphql": "^16.9.0",
     "graphql-yoga": "^5.4.0",
-    "i-graphql": "^0.1.2",
+    "i-graphql": "^0.1.8",
     "inquirer": "^9.2.12",
     "mongodb": "^5.1.0",
     "node-fetch": "^3.3.2",
     "plaiceholder": "^2.5.0",
     "sharp": "^0.32.6",
     "ws": "^8.12.0"
+  },
+  "resolutions": {
+    "graphql": "16.9.0"
   }
 }

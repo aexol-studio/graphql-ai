@@ -1,40 +1,66 @@
 version: '3.8'
 
 services:
-  mongo:
-    image: mongo:latest
-    container_name: mongo
-    restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+  mongodb:
+    image: mongo
     ports:
-      - '27018:27017'
+      - '27017:27017'
     volumes:
       - mongo_data:/data/db
-
+    networks:
+      - my-network
   minio:
     image: minio/minio:latest
     container_name: minio
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadminpassword
+      MINIO_ACCESS_KEY: your-access-key
+      MINIO_SECRET_KEY: your-secret-key
     ports:
       - '9000:9000'
     volumes:
       - minio_data:/data
     command: server /data
     restart: always
-
+    networks:
+      - my-network
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 your-access-key your-secret-key;
+      /usr/bin/mc mb myminio/bucket;
+      /usr/bin/mc policy set public myminio/bucket;
+      exit 0;
+      "
+    networks:
+      - my-network
   graphql-ai:
     build:
       context: ..
       dockerfile: docker/Dockerfile
     container_name: graphql-ai
+    depends_on:
+      - 'mongodb'
+      - 'createbuckets'
     ports:
-      - '8080:8080'
+      - '4000:4000'
     restart: always
+    environment:
+      MONGO_URL: mongodb://mongodb:27017/ai
+      JWT_SECRET: sdahnbured78yu2ygr87joi2r43tojh2tr3h980
+      SPACES_KEY: your-access-key
+      SPACES_SECRET: your-secret-key
+      SPACES_BUCKET: bucket
+      SPACES_ENDPOINT: http://minio:9000
+    networks:
+      - my-network
 
 volumes:
   mongo_data:
   minio_data:
+networks:
+  my-network:

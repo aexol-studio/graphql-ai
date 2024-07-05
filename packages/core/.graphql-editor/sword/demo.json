@@ -16,12 +16,21 @@
     }
   },
   "responses": {
-    "generateAPIKey": {
+    "JustConversationWithGpt": {
       "__typename": "success",
       "data": {
-        "generateAPIKey": "dupa"
+        "ai": {
+          "conversational": {
+            "chatGPT35Turbo": {
+              "message": {
+                "content": "Bosnia and Herzegovina",
+                "role": "assistant"
+              }
+            }
+          }
+        }
       },
-      "timeDelta": 14.100000381469727,
+      "timeDelta": 12.400000095367432,
       "status": 200,
       "statusHealthy": true
     }

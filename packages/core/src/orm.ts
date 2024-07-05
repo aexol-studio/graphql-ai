@@ -1,5 +1,5 @@
 import { iGraphQL, MongoModel } from 'i-graphql';
-import { ObjectId } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import {
   APIKey,
   GeneratedImage,
@@ -17,7 +17,6 @@ export type IsolatedContextNetworkModel = MongoModel<IsolatedContextNetwork>;
 export type FineTuneJobModel = FineTuneJob;
 export type DialogModel = Dialog;
 export type StyleTemplateModel = StyleTemplate;
-
 const orm = async () => {
   return iGraphQL<
     {
@@ -33,10 +32,24 @@ const orm = async () => {
       _id: () => string;
       createdAt: () => string;
     }
-  >({
-    _id: () => new ObjectId().toHexString(),
-    createdAt: () => new Date().toISOString(),
-  });
+  >(
+    {
+      APIKey: '_id',
+      DialogCollection: '_id',
+      FineTuneJobsCollection: '_id',
+      GeneratedImage: '_id',
+      IsolatedContextNetwork: '_id',
+      IsolatedConversationalContext: '_id',
+      StyleTemplate: '_id',
+    },
+    {
+      autoFields: {
+        _id: () => new ObjectId().toHexString(),
+        createdAt: () => new Date().toISOString(),
+      },
+      mongoClient: new MongoClient(process.env.MONGO_URL || '', {}),
+    },
+  );
 };
 
 export const MongOrb = await orm();
