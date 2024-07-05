@@ -12,6 +12,7 @@ services:
       - '27018:27017'
     volumes:
       - mongo_data:/data/db
+
   minio:
     image: minio/minio:latest
     container_name: minio
@@ -24,7 +25,16 @@ services:
       - minio_data:/data
     command: server /data
     restart: always
-    
+
+  graphql-ai:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: graphql-ai
+    ports:
+      - '8080:8080'
+    restart: always
+
 volumes:
   mongo_data:
   minio_data:
