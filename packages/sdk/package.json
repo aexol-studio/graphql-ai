@@ -1,0 +1,17 @@
+{
+  "name": "@aexol-studio/graphql-ai-sdk",
+  "version": "0.0.1",
+  "description": "Backend part of graphql ai",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "zeus": "zeus ../core/schema.graphql ./ --es"
+  },
+  "author": "Aexol",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "cross-fetch": "^4.0.0"
+  }
+}

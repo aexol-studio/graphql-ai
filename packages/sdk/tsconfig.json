@@ -3,12 +3,14 @@
     "skipLibCheck": true,
     "target":"es2020",
     "module": "esnext",
+    "declaration": true,
     "moduleResolution": "node",
     "outDir": "./lib",
-    "rootDir": "./src",
+    "rootDir": "./",
     "strict": true,
     "strictNullChecks": true,
     "esModuleInterop": true
   },
+  "include": ["./**/*"],
   "exclude": ["node_modules","lib"]
 }
